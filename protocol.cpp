@@ -45,8 +45,8 @@ void setupCup(uint8_t n) {
   for (uint8_t i = 0; i < n; i++) {
     pinMode(CUP_MOTOR_OUT[i], OUTPUT);
     pinMode(CUP_ROT_IN[i], INPUT_PULLUP);
-    pinMode(CUP_DISP_IN[i], INPUT);
-    pinMode(CUP_STOCK_IN[i], INPUT);
+    pinMode(CUP_DISP_IN[i], INPUT_PULLUP);
+    pinMode(CUP_STOCK_IN[i], INPUT_PULLUP);
   }
 }
 void setupRamen(uint8_t n) {
@@ -151,9 +151,22 @@ void startCupDispense(uint8_t idx) {
 }
 
 void checkCupDispense() {
+  Serial.print("check digital Motor : ");
+  Serial.print(digitalRead(CUP_MOTOR_OUT[0]));
+  Serial.print(" ROT : ");
+  Serial.print(digitalRead(CUP_ROT_IN[0]));
+  Serial.print(" DISP : ");
+  Serial.print(digitalRead(CUP_DISP_IN[0]));
+  Serial.print(" STOCK : ");
+  Serial.print(digitalRead(CUP_STOCK_IN[0]));
+  Serial.print(" COOK : ");
+  Serial.print(digitalRead(CUP_COOK_START[0]));
+  Serial.print(" SOLENOID : ");
+  Serial.println(digitalRead(CUP_SOLENOID[0]));
+
   for (uint8_t i = 0; i < current.cup; i++) {
     if (digitalRead(CUP_MOTOR_OUT[i]) == HIGH) {
-      if (digitalRead(CUP_ROT_IN[i]) == LOW) {
+      if (digitalRead(CUP_DISP_IN[i]) == LOW) {
         Serial.print("완료: 용기 배출 중지 (장비: ");
         Serial.print(i + 1);
         Serial.println(")");

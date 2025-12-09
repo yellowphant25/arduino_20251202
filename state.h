@@ -17,6 +17,7 @@ struct State {
   int cup_amp[MAX_CUP] = {0};
   int cup_stock[MAX_CUP] = {0};
   int cup_dispense[MAX_CUP] = {0};
+
   // Ramen
   int ramen_amp[MAX_RAMEN] = {0};
   int ramen_stock[MAX_RAMEN] = {0};

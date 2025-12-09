@@ -31,6 +31,18 @@ void readAllSensors() {
     state.cup_amp[i] = analogRead(CUP_CURR_AIN[i]);
     state.cup_stock[i] = digitalRead(CUP_STOCK_IN[i]);
     state.cup_dispense[i] = digitalRead(CUP_ROT_IN[i]);
+
+    if(i == 0) {
+      Serial.print(CUP_STOCK_IN[i]);
+      Serial.print(" : ");
+      Serial.println(digitalRead(CUP_STOCK_IN[i]));
+    }
+
+    else if(i == 1) {
+      Serial.print(CUP_STOCK_IN[i]);
+      Serial.print(" : ");
+      Serial.println(digitalRead(CUP_STOCK_IN[i]));
+    }
   }
 
   for (i = 0; i < current.ramen; i++) { 

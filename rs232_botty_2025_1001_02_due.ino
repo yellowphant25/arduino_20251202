@@ -106,6 +106,9 @@ void loop() {
 
     if (current.cup > 0 || current.ramen > 0 || current.powder > 0 || current.cooker > 0 || current.outlet > 0) {
       readAllSensors(); // Reporting.cpp 에 정의됨
+      // Serial.print("######################### ");
+      // Serial.print(state.cup_stock[0]);
+      // Serial.println(" #########################");
       publishStateJson();
     } else {
       // setting 안된 경우에 보냄
