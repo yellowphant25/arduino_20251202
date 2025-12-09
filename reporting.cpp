@@ -41,7 +41,7 @@ void readAllSensors() {
 
   for (i = 0; i < current.powder; i++) {
     state.powder_amp[i] = filterAmpValue(POWDER_CURR_AIN[i], state.powder_amp[i]);
-    state.powder_dispense[i] = (digitalRead(POWDER_MOTOR_OUT[i]) == LOW) ? 1 : 0; 
+    state.powder_dispense[i] = (digitalRead(POWDER_MOTOR_OUT[i]) == HIGH) ? 1 : 0; 
   }
 
   for (i = 0; i < current.cooker; i++) {
@@ -102,10 +102,10 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "ramen";
     doc["control"] = i + 1;
-    //doc["amp"] = state.ramen_amp[i];
-    //doc["stock"] = state.ramen_stock[i];
-    //doc["lift"] = state.ramen_lift[i];
-    //doc["loadcell"] = state.ramen_loadcell[i];
+    doc["amp"] = state.ramen_amp[i];
+    doc["stock"] = state.ramen_stock[i];
+    doc["lift"] = state.ramen_lift[i];
+    doc["loadcell"] = state.ramen_loadcell[i];
     serializeJson(doc, Serial);
   }
 
