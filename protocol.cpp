@@ -3,6 +3,7 @@
 #include "Protocol.h"  // 자신의 헤더
 #include "config.h"    // 핀맵
 #include "state.h"     // 전역 변수(current, state) 사용
+#include "reporting.h"
 
 // ===== 전역 상태 변수 (idx=0 장비 전용 상태) =====
 enum RamenEjectState {
@@ -344,7 +345,11 @@ void checkOutlet() {
 bool handleCupCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.cup) { Serial.println("invalid cup control num"); return false; }
+  if (control <= 0 || control > current.cup) { 
+    sendError("cup", control, "invalid cup control num"); 
+    return false; 
+  }
+
   uint8_t idx = control - 1;
 
   if (strcmp(func, "startdispense") == 0) {
@@ -360,7 +365,10 @@ bool handleCupCommand(const JsonDocument& doc) {
 bool handleRamenCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.ramen) { Serial.println("invalid ramen control num"); return false; }
+  if (control <= 0 || control > current.ramen) { 
+    sendError("ramen", control, "invalid ramen control num"); 
+    return false; 
+  }
   uint8_t idx = control - 1;
   Serial.println("start handle ramen");
 
@@ -380,21 +388,29 @@ bool handleRamenCommand(const JsonDocument& doc) {
     digitalWrite(RAMEN_UP_REV_OUT[idx], LOW);
     if (idx == 0) { ramenEjectStatus = EJECT_IDLE; }
     Serial.println("ramen stopdispense (ALL STOP)");
-  } else { Serial.println("unknown ramen function"); }
+  } else {
+    sendError("ramen", control, "unknown ramen function");
+  }
   return true;
 }
 
 bool handlePowderCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.powder) { Serial.println("invalid powder control num"); return false; }
+  if (control <= 0 || control > current.powder) { 
+    sendError("powder", control, "invalid powder control num"); 
+    return false; 
+  }
   uint8_t idx = control - 1;
 
   if (strcmp(func, "startdispense") == 0) {
     
     int time_val = doc["time"] | 0; 
     
-    if (time_val <= 0) { Serial.println("Error: 'time' 0 or missing for powder dispense"); return false; }
+    if (time_val <= 0) { 
+      sendError("powder", control, "Error: 'time' 0 or missing"); 
+      return false; 
+    }
 
     unsigned long durationMs = (unsigned long)time_val * 100;
 
@@ -409,14 +425,19 @@ bool handlePowderCommand(const JsonDocument& doc) {
     digitalWrite(POWDER_MOTOR_OUT[idx], LOW);
     isPowderDispensing[idx] = false; 
     Serial.println("powder stopdispense");
-  } else { Serial.println("unknown powder function"); }
+  } else {
+    sendError("powder", control, "unknown powder function");
+  }
   return true;
 }
 
 bool handleCookerCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.cooker) { Serial.println("invalid cooker control num"); return false; }
+  if (control <= 0 || control > current.cooker) { 
+    sendError("cooker", control, "invalid cooker control num");
+    return false; 
+  }
   uint8_t idx = control - 1;
 
   if (strcmp(func, "startcook") == 0) {
@@ -435,14 +456,19 @@ bool handleCookerCommand(const JsonDocument& doc) {
     }
     Serial.println("cooker stopcook");
 
-  } else { Serial.println("unknown cooker function"); }
+  } else {
+    sendError("cooker", control, "unknown cooker function");
+  }
   return true;
 }
 
 bool handleOutletCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.outlet) { Serial.println("invalid outlet control num"); return false; }
+  if (control <= 0 || control > current.outlet) { 
+    sendError("outlet", control, "invalid outlet control num");
+    return false; 
+  }
   uint8_t idx = control - 1;
 
   if (strcmp(func, "opendoor") == 0) {
@@ -460,7 +486,9 @@ bool handleOutletCommand(const JsonDocument& doc) {
     digitalWrite(OUTLET_REV_OUT[idx], LOW);
     Serial.println("outlet stopoutlet");
 
-  } else { Serial.println("unknown outlet function"); }
+  } else {
+    sendError("outlet", control, "unknown outlet function");
+  }
   return true;
 }
 
@@ -477,7 +505,10 @@ bool handleSettingJson(const JsonDocument& doc) {
   next.outlet = doc["outlet"] | 0;
 
   String reason = "";
-  if (!validateRules(next, reason)) { Serial.println(reason.c_str()); return false; }
+  if (!validateRules(next, reason)) {
+    // 설정 유효성 실패
+    sendError("setting", 0, reason.c_str());
+  }
 
   applySetting(next);
   Serial.println("pins configured");
@@ -489,7 +520,9 @@ void checkSensor() { /* ... */ }
 bool parseAndDispatch(const char* json) {
   StaticJsonDocument<512> doc;
   DeserializationError err = deserializeJson(doc, json);
-  if (err) { Serial.println("json parse fail"); return false; }
+  if (err) {
+    sendError("system", 0, "json parse fail");
+  }
 
   const char* dev = doc["device"] | "";
 
@@ -500,5 +533,7 @@ bool parseAndDispatch(const char* json) {
   else if (strcmp(dev, "powder") == 0) { return handlePowderCommand(doc); } 
   else if (strcmp(dev, "cooker") == 0) { return handleCookerCommand(doc); } 
   else if (strcmp(dev, "outlet") == 0) { return handleOutletCommand(doc); } 
-  else { Serial.println("unsupported device field"); return false; }
+  else {
+    sendError("system", 0, "unsupported device field");
+  }
 }

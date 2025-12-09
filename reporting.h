@@ -11,4 +11,7 @@ void handleEncoderA();
 void handleEncoderB();
 void reportEncoderDebug(unsigned long currentMillis);
 
+// 에러 전송
+void sendError(const char* device, int control, const char* errorMsg);
+
 #endif // REPORTING_H

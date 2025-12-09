@@ -60,6 +60,18 @@ void readAllSensors() {
   state.door_sensor2 = digitalRead(DOOR_SENSOR2_PIN);
 }
 
+// 에러 전송
+void sendError(const char* device, int control, const char* errorMsg) {
+  StaticJsonDocument<256> doc;
+  
+  doc["device"] = device;
+  doc["control"] = control;
+  doc["error"] = errorMsg;
+
+  Serial.print('['); 
+  serializeJson(doc, Serial);
+  Serial.println(']');
+}
 
 void publishStateJson() {
   StaticJsonDocument<512> doc;
