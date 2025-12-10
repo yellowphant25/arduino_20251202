@@ -349,6 +349,7 @@ void startOutletOpen(int pinIdx) {
   Serial.print("명령: 배출구 오픈 시작 (장비: ");
   Serial.print(pinIdx + 1);
   Serial.println(")");
+  digitalWrite(OUTLET_REV_OUT[pinIdx], LOW); 
   digitalWrite(OUTLET_FWD_OUT[pinIdx], HIGH);
 }
 
@@ -359,6 +360,7 @@ void startOutletClose(int pinIdx) {
   Serial.print("명령: 배출구 닫기 시작 (장비: ");
   Serial.print(pinIdx + 1);
   Serial.println(")");
+  digitalWrite(OUTLET_FWD_OUT[pinIdx], LOW);
   digitalWrite(OUTLET_REV_OUT[pinIdx], HIGH);
 }
 
@@ -517,20 +519,15 @@ bool handleCookerCommand(const JsonDocument& doc) {
 bool handleOutletCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  if (control <= 0 || control > current.outlet) {
-    sendError("outlet", control, "invalid outlet control num");
-    return false;
-  }
+  // ... (오류 검증 생략) ...
   uint8_t idx = control - 1;
 
   if (strcmp(func, "opendoor") == 0) {
     startOutletOpen(idx);
-    digitalWrite(OUTLET_REV_OUT[idx], LOW);
     Serial.println("outlet opendoor");
 
   } else if (strcmp(func, "closedoor") == 0) {
     startOutletClose(idx);
-    digitalWrite(OUTLET_FWD_OUT[idx], LOW);
     Serial.println("outlet closedoor");
 
   } else if (strcmp(func, "stopoutlet") == 0) {
