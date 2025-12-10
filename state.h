@@ -39,6 +39,9 @@ struct State {
   int door_sensor2 = 0;
 };
 
+extern long startCupReleaseTime[MAX_CUP];
+extern long cupReleaseInterval;
+
 extern Setting current;
 extern State state;
 

@@ -21,6 +21,9 @@ volatile long cur_encoder1 = 0;
 unsigned long start_encoder1 = 0;
 unsigned long interval = 1000;
 
+long startCupReleaseTime[MAX_CUP] = {0};
+long cupReleaseInterval = 500;
+
 // =======================================================
 // === 1. 설정 (Setup) 및 파싱 (Parse) 함수
 // =======================================================
@@ -151,26 +154,23 @@ void startCupDispense(uint8_t idx) {
 }
 
 void checkCupDispense() {
-  Serial.print("check digital Motor : ");
-  Serial.print(digitalRead(CUP_MOTOR_OUT[0]));
-  Serial.print(" ROT : ");
-  Serial.print(digitalRead(CUP_ROT_IN[0]));
-  Serial.print(" DISP : ");
-  Serial.print(digitalRead(CUP_DISP_IN[0]));
-  Serial.print(" STOCK : ");
-  Serial.print(digitalRead(CUP_STOCK_IN[0]));
-  Serial.print(" COOK : ");
-  Serial.print(digitalRead(CUP_COOK_START[0]));
-  Serial.print(" SOLENOID : ");
-  Serial.println(digitalRead(CUP_SOLENOID[0]));
+    for (uint8_t i = 0; i < current.cup; i++) {
+      if (digitalRead(CUP_MOTOR_OUT[i]) == HIGH) {
+        if (startCupReleaseTime[i] == 0) {
+          startCupReleaseTime[i] = millis();
+        }
 
-  for (uint8_t i = 0; i < current.cup; i++) {
-    if (digitalRead(CUP_MOTOR_OUT[i]) == HIGH) {
-      if (digitalRead(CUP_DISP_IN[i]) == LOW) {
-        Serial.print("완료: 용기 배출 중지 (장비: ");
-        Serial.print(i + 1);
-        Serial.println(")");
-        digitalWrite(CUP_MOTOR_OUT[i], LOW);
+        long now = millis();
+        long elapsedTime = now - startCupReleaseTime[i];
+        if (elapsedTime >= cupReleaseInterval) {
+          if (digitalRead(CUP_DISP_IN[i]) == LOW) {
+          Serial.print("완료: 용기 배출 중지 (장비: ");
+          Serial.print(i + 1);
+          Serial.println(")");
+          digitalWrite(CUP_MOTOR_OUT[i], LOW);
+
+          startCupReleaseTime[i] = 0;
+        }
       }
     }
   }
@@ -192,7 +192,6 @@ void checkRamenRise() {
   for (uint8_t i = 0; i < current.ramen; i++) {
     if (digitalRead(RAMEN_UP_FWD_OUT[i]) == HIGH) {
       bool stopMotor = false;
-      // 🔴 [주의] 엔코더 로직은 i=0 장비에만 해당
       if (i == 0) {
         long current_encoder_safe;
         noInterrupts();
@@ -217,7 +216,7 @@ void checkRamenRise() {
 }
 
 /**
- * @brief 🔴 [수정] 면 하강(초기화)을 시작 (idx 인자 추가 및 사용)
+ * @brief 
  */
 void startRamenInit(uint8_t idx) {
   Serial.print("명령: 면 하강 시작 (장비: ");
@@ -227,7 +226,7 @@ void startRamenInit(uint8_t idx) {
 }
 
 /**
- * @brief 🟢 [복구] 면 하강(초기화) 멈춤 조건을 확인 (모든 장비 순회)
+ * @brief 
  */
 void checkRamenInit() {
   for (uint8_t i = 0; i < current.ramen; i++) {
@@ -243,10 +242,10 @@ void checkRamenInit() {
 }
 
 /**
- * @brief 🔴 [수정] 면 배출을 시작 (idx 인자 추가 및 사용)
+ * @brief 
  */
 void startRamenEject(uint8_t idx) {
-  // 🔴 [주의] 상태 머신은 단일 변수이므로, idx=0일 때만 작동
+  //
   if (idx == 0) {
     if (ramenEjectStatus == EJECT_IDLE) {
       Serial.print("명령: 면 배출 시작 (장비: ");
@@ -264,7 +263,7 @@ void startRamenEject(uint8_t idx) {
 }
 
 /**
- * @brief 🟢 [복구] 면 배출 상태 머신을 처리 (모든 장비 순회)
+ * @brief 
  */
 void checkRamenEject() {
   // 1. 상태 머신 (idx=0 전용)
@@ -566,7 +565,7 @@ void checkSensor() { /* ... */
 
 bool parseAndDispatch(const char* json) {
   StaticJsonDocument<512> doc;
-  
+
   DeserializationError err = deserializeJson(doc, json);
   if (err) {
     sendError("system", 0, "json parse fail");
