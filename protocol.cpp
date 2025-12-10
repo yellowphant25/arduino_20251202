@@ -54,6 +54,9 @@ void setupCup(uint8_t n) {
 }
 void setupRamen(uint8_t n) {
   for (uint8_t i = 0; i < n; i++) {
+    Serial.print("ramen setup idx : ");
+    Serial.println(i);
+
     pinMode(RAMEN_UP_FWD_OUT[i], OUTPUT);
     pinMode(RAMEN_UP_REV_OUT[i], OUTPUT);
     pinMode(RAMEN_EJ_FWD_OUT[i], OUTPUT);
@@ -66,9 +69,9 @@ void setupRamen(uint8_t n) {
   }
 
   // [수정] 모든 RAMEN_ENCODER 핀 설정 (i 인덱스 사용)
-  for (uint8_t i = 0; i < MAX_RAMEN * 2; i++) {
-    pinMode(RAMEN_ENCODER[i], INPUT_PULLUP);
-  }
+  // for (uint8_t i = 0; i < MAX_RAMEN * 2; i++) {
+  //   pinMode(RAMEN_ENCODER[i], INPUT_PULLUP);
+  // }
 }
 void setupPowder(uint8_t n) {
   for (uint8_t i = 0; i < n; i++) {
@@ -180,11 +183,11 @@ void startRamenRise(uint8_t idx) {
   Serial.print("명령: 면 상승 시작 (장비: ");
   Serial.print(idx + 1);
   Serial.println(")");
-  noInterrupts();
-  start_encoder1 = cur_encoder1;  // 🔴 [주의] 엔코더는 단일 변수만 사용
-  interrupts();
-  Serial.print("시작 엔코더 값: ");
-  Serial.println(start_encoder1);
+  // noInterrupts();
+  // start_encoder1 = cur_encoder1;
+  // interrupts();
+  // Serial.print("시작 엔코더 값: ");
+  // Serial.println(start_encoder1);
   digitalWrite(RAMEN_UP_FWD_OUT[idx], HIGH);
 }
 
@@ -193,15 +196,19 @@ void checkRamenRise() {
     if (digitalRead(RAMEN_UP_FWD_OUT[i]) == HIGH) {
       bool stopMotor = false;
       if (i == 0) {
-        long current_encoder_safe;
-        noInterrupts();
-        current_encoder_safe = cur_encoder1;
-        interrupts();
-        if (current_encoder_safe - start_encoder1 > interval) { stopMotor = true; }
+        // long current_encoder_safe;
+        // noInterrupts();
+        // current_encoder_safe = cur_encoder1;
+        // interrupts();
+        // if (current_encoder_safe - start_encoder1 > interval) { stopMotor = true; }
       }
+
+
       if (digitalRead(RAMEN_PRESENT_IN[i]) == LOW) {
+        Serial.println("포토 센서 LOW");
         stopMotor = true;
       } else if (digitalRead(RAMEN_UP_TOP_IN[i]) == HIGH) {
+        Serial.println("면상승 상한센서 HIGH");
         stopMotor = true;
       }
 
@@ -210,6 +217,7 @@ void checkRamenRise() {
         Serial.print(i + 1);
         Serial.println(")");
         digitalWrite(RAMEN_UP_FWD_OUT[i], LOW);
+        stopMotor = false;
       }
     }
   }
@@ -266,7 +274,6 @@ void startRamenEject(uint8_t idx) {
  * @brief 
  */
 void checkRamenEject() {
-  // 1. 상태 머신 (idx=0 전용)
   if (current.ramen > 0) {
     switch (ramenEjectStatus) {
       case EJECTING:
@@ -278,7 +285,7 @@ void checkRamenEject() {
         }
         break;
       case EJECT_RETURNING:
-        if (digitalRead(RAMEN_UP_BTM_IN[0]) == HIGH) {
+        if (digitalRead(RAMEN_EJ_BTM_IN[0]) == HIGH) {
           Serial.println("완료: 상승 하한 감지. 배출 복귀 모터 정지 (장비: 1)");
           digitalWrite(RAMEN_EJ_REV_OUT[0], LOW);
           ramenEjectStatus = EJECT_IDLE;

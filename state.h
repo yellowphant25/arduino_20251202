@@ -50,7 +50,7 @@ extern const int CPR;
 
 extern volatile long encoderCount;
 extern volatile int direction;
-extern unsigned long lastEncoderReportTime; // 52줄 수정됨
+extern unsigned long lastEncoderReportTime;
 extern long lastCount;
 
 extern const int ENCODER_A_PIN;
