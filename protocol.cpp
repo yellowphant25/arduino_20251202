@@ -519,7 +519,6 @@ bool handleCookerCommand(const JsonDocument& doc) {
 bool handleOutletCommand(const JsonDocument& doc) {
   int control = doc["control"] | 0;
   const char* func = doc["function"] | "";
-  // ... (오류 검증 생략) ...
   uint8_t idx = control - 1;
 
   if (strcmp(func, "opendoor") == 0) {
