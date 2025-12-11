@@ -114,6 +114,11 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "ramen";
     doc["control"] = i + 1;
+    doc["ej_top_in"] = digitalRead(RAMEN_EJ_TOP_IN[i]); // 면 배출 상한 센서
+    doc["ej_btm_in"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 배출 하한 센서
+    doc["up_in"] = digitalRead(RAMEN_UP_TOP_IN[i]); // 면 상승 상한 센서
+    doc["down_in"] = digitalRead(RAMEN_UP_BTM_IN[i]); // 면 상승 하한 센서
+    doc["photo"] = digitalRead(RAMEN_PRESENT_IN[i]); // 포토 센서
     doc["amp"] = state.ramen_amp[i];
     doc["stock"] = state.ramen_stock[i];
     doc["lift"] = state.ramen_lift[i];
