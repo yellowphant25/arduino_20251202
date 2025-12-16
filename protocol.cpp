@@ -348,7 +348,7 @@ void startOutletClose(int pinIdx) {
 void checkOutlet() {
   for (uint8_t i = 0; i < current.outlet; i++) {
     if (digitalRead(OUTLET_FWD_OUT[i]) == HIGH) {
-      if (digitalRead(OUTLET_OPEN_IN[i]) == LOW) {
+      if (digitalRead(OUTLET_OPEN_IN[i]) == HIGH) {
         Serial.print("완료: 배출구 오픈 완료 (장비: ");
         Serial.print(i + 1);
         Serial.println(")");
@@ -357,7 +357,7 @@ void checkOutlet() {
     }
 
     if (digitalRead(OUTLET_REV_OUT[i]) == HIGH) {
-      if (digitalRead(OUTLET_CLOSE_IN[i]) == LOW) {
+      if (digitalRead(OUTLET_CLOSE_IN[i]) == HIGH) {
         Serial.print("완료: 배출구 닫힘 완료 (장비: ");
         Serial.print(i + 1);
         Serial.println(")");
