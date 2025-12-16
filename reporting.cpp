@@ -4,9 +4,9 @@
 #include "config.h" 
 #include "state.h"
 
-unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; 
-int ramenPhotoPrevState[MAX_RAMEN] = {0};              
-const unsigned long DEBOUNCE_DELAY_MS = 50;
+unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; // Line 7
+int ramenPhotoPrevState[MAX_RAMEN] = {0};             // Line 8
+const unsigned long DEBOUNCE_DELAY_MS = 100;          // Line 9 (값은 예시)
 
 // =========================================================
 // [추가됨] 전류 센서값 정제 함수 (노이즈 필터 + 데드존)

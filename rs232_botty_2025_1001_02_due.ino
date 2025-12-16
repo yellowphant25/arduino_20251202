@@ -22,8 +22,6 @@ const int CPR = PPR * 4;
 
 volatile long encoderCount = 0;
 volatile int  direction = 0;
-
-unsigned long lastEncoderReportTime = 0;
 long lastCount = 0;
 
 void setup() {
@@ -39,13 +37,6 @@ void setup() {
 
   Serial.println(F("[{\"boot\":\"ready\"\"}]"));
   lastPublishMs = millis();
-
-  pinMode(ENCODER_A_PIN, INPUT_PULLUP);
-  pinMode(ENCODER_B_PIN, INPUT_PULLUP);
-
-  // A, B 둘 다 인터럽트 사용 (정밀도 높게)
-  attachInterrupt(digitalPinToInterrupt(ENCODER_A_PIN), handleEncoderA, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_B_PIN), handleEncoderB, CHANGE);
 }
 
 void loop() {
