@@ -31,24 +31,11 @@ void readAllSensors() {
     state.cup_amp[i] = analogRead(CUP_CURR_AIN[i]);
     state.cup_stock[i] = digitalRead(CUP_STOCK_IN[i]);
     state.cup_dispense[i] = digitalRead(CUP_ROT_IN[i]);
-
-    if(i == 0) {
-      Serial.print(CUP_STOCK_IN[i]);
-      Serial.print(" : ");
-      Serial.println(digitalRead(CUP_STOCK_IN[i]));
-    }
-
-    else if(i == 1) {
-      Serial.print(CUP_STOCK_IN[i]);
-      Serial.print(" : ");
-      Serial.println(digitalRead(CUP_STOCK_IN[i]));
-    }
   }
 
   for (i = 0; i < current.ramen; i++) { 
     state.ramen_amp[i] = analogRead(RAMEN_EJ_CURR_AIN[i]);
     state.ramen_stock[i] = digitalRead(RAMEN_PRESENT_IN[i]);
-    // state.ramen_lift[i] = ... (엔코더 값 계산 로직 필요)
   }
 
   for (i = 0; i < current.powder; i++) {
@@ -185,66 +172,3 @@ void checkVolt() {
   Serial.print("current vol : ");
   Serial.println(v);
 }
-
-// 엔코더 상태 출력 함수 (100ms 마다 실행)
-void reportEncoderDebug(unsigned long currentMillis) {
-  if (currentMillis - lastEncoderReportTime >= 100) {
-    
-    noInterrupts();
-    long countCopy = encoderCount;
-    int dirCopy = direction;
-    interrupts();
-
-    // 시간 차이 계산 (초 단위)
-    float dt = (currentMillis - lastEncoderReportTime) / 1000.0;
-    
-    // 카운트 차이 및 속도 계산
-    long dCount = countCopy - lastCount;
-    float revPerSec = (float)dCount / (float)CPR / dt;
-    float rpm = revPerSec * 60.0;
-    
-    // 각도 계산 (도 단위)
-    float angleDeg = (float)countCopy * 360.0 / (float)CPR;
-
-    // 상태 업데이트
-    lastEncoderReportTime = currentMillis;
-    lastCount = countCopy;
-
-    // 시리얼 출력
-    Serial.print("[Encoder] Count: ");
-    Serial.print(countCopy);
-    Serial.print(" | Angle: ");
-    Serial.print(angleDeg, 1);
-    Serial.print(" deg | Dir: ");
-    Serial.print((dirCopy >= 0) ? "CW" : "CCW");
-    Serial.print(" | RPM: ");
-    Serial.println(rpm, 1);
-  }
-}
-
-void handleEncoderA() {
-  bool A = digitalRead(ENCODER_A_PIN);
-  bool B = digitalRead(ENCODER_B_PIN);
-
-  if (A == B) {
-    encoderCount++;  // CW
-    direction = +1;
-  } else {
-    encoderCount--;  // CCW
-    direction = -1;
-  }
-}
-
-// B 채널 인터럽트 서비스 루틴
-void handleEncoderB() {
-  bool A = digitalRead(ENCODER_A_PIN);
-  bool B = digitalRead(ENCODER_B_PIN);
-
-  if (A != B) {
-    encoderCount++;  // CW
-    direction = +1;
-  } else {
-    encoderCount--;  // CCW
-    direction = -1;
-  }
-} 

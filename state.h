@@ -45,15 +45,4 @@ extern long cupReleaseInterval;
 extern Setting current;
 extern State state;
 
-extern const int PPR;
-extern const int CPR; 
-
-extern volatile long encoderCount;
-extern volatile int direction;
-extern unsigned long lastEncoderReportTime;
-extern long lastCount;
-
-extern const int ENCODER_A_PIN;
-extern const int ENCODER_B_PIN;
-
 #endif // STATE_H
