@@ -14,6 +14,11 @@ unsigned long powderDuration[MAX_POWDER] = { 0 };
 long startCupReleaseTime[MAX_CUP] = {0};
 long cupReleaseInterval = 500;
 
+unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; 
+int ramenPhotoPrevState[MAX_RAMEN] = {0};              
+const unsigned long DEBOUNCE_DELAY_MS = 50;
+
+
 // =======================================================
 // === 1. 설정 (Setup) 및 파싱 (Parse) 함수
 // =======================================================
@@ -195,6 +200,45 @@ void checkRamenRise() {
         Serial.println(")");
         digitalWrite(RAMEN_UP_FWD_OUT[i], LOW);
         stopMotor = false;
+      }
+    }
+  }
+}
+
+void checkRamenRise() {
+  uint8_t i;
+  unsigned long now = millis();
+  int currentReading;
+  int stableState;
+
+  for (i = 0; i < current.ramen; i++) {
+    if (digitalRead(RAMEN_UP_FWD_OUT[i]) == HIGH) {
+      bool stopMotor = false;
+      currentReading = digitalRead(RAMEN_PRESENT_IN[i]);
+      if (currentReading != ramenPhotoPrevState[i]) {
+        ramenPhotoDebounceTime[i] = now;
+        ramenPhotoPrevState[i] = currentReading;
+      }
+      
+      if ((now - ramenPhotoDebounceTime[i]) >= DEBOUNCE_DELAY_MS) {
+        stableState = currentReading;
+      } else {
+        stableState = ramenPhotoPrevState[i];
+      }
+      if (stableState == LOW) {
+        Serial.println("포토 센서 LOW (Debounced)");
+        stopMotor = true;
+      } 
+      else if (digitalRead(RAMEN_UP_TOP_IN[i]) == HIGH) {
+        Serial.println("면상승 상한센서 HIGH");
+        stopMotor = true;
+      }
+
+      if (stopMotor) {
+        Serial.print("완료: 상승 동작 중지 (장비: ");
+        Serial.print(i + 1);
+        Serial.println(")");
+        digitalWrite(RAMEN_UP_FWD_OUT[i], LOW);
       }
     }
   }
