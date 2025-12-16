@@ -17,10 +17,6 @@ bool isPowderDispensing[MAX_POWDER] = { false };
 unsigned long powderStartTime[MAX_POWDER] = { 0 };
 unsigned long powderDuration[MAX_POWDER] = { 0 };
 
-volatile long cur_encoder1 = 0;
-unsigned long start_encoder1 = 0;
-unsigned long interval = 1000;
-
 long startCupReleaseTime[MAX_CUP] = {0};
 long cupReleaseInterval = 500;
 
@@ -183,11 +179,6 @@ void startRamenRise(uint8_t idx) {
   Serial.print("명령: 면 상승 시작 (장비: ");
   Serial.print(idx + 1);
   Serial.println(")");
-  // noInterrupts();
-  // start_encoder1 = cur_encoder1;
-  // interrupts();
-  // Serial.print("시작 엔코더 값: ");
-  // Serial.println(start_encoder1);
   digitalWrite(RAMEN_UP_FWD_OUT[idx], HIGH);
 }
 
@@ -195,14 +186,6 @@ void checkRamenRise() {
   for (uint8_t i = 0; i < current.ramen; i++) {
     if (digitalRead(RAMEN_UP_FWD_OUT[i]) == HIGH) {
       bool stopMotor = false;
-      if (i == 0) {
-        // long current_encoder_safe;
-        // noInterrupts();
-        // current_encoder_safe = cur_encoder1;
-        // interrupts();
-        // if (current_encoder_safe - start_encoder1 > interval) { stopMotor = true; }
-      }
-
 
       if (digitalRead(RAMEN_PRESENT_IN[i]) == LOW) {
         Serial.println("포토 센서 LOW");
