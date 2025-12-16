@@ -6,7 +6,7 @@
 
 unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; // Line 7
 int ramenPhotoPrevState[MAX_RAMEN] = {0};             // Line 8
-const unsigned long DEBOUNCE_DELAY_MS = 100;          // Line 9 (값은 예시)
+const unsigned long DEBOUNCE_DELAY_MS = 50;          // Line 9 (값은 예시)
 
 // =========================================================
 // [추가됨] 전류 센서값 정제 함수 (노이즈 필터 + 데드존)
@@ -47,15 +47,12 @@ void readAllSensors() {
     if (currentReading != ramenPhotoPrevState[i]) {
       // 값이 변했으므로, 타이머를 재설정하고 상태 저장 (바운싱 시작)
       ramenPhotoDebounceTime[i] = now;
-      ramenPhotoPrevState[i] = currentReading; // 상태 업데이트
+      ramenPhotoPrevState[i] = currentReading;
     }
 
-    // 3. 값이 50ms 이상 안정적으로 유지되었는지 확인
     if ((now - ramenPhotoDebounceTime[i]) >= DEBOUNCE_DELAY_MS) {
-      // 값이 안정되었으므로, 최종 상태 변수(state.ramen_stock)에 반영
       state.ramen_stock[i] = currentReading; 
     }
-
 
     state.ramen_amp[i] = analogRead(RAMEN_EJ_CURR_AIN[i]);
   }
@@ -120,14 +117,24 @@ void publishStateJson() {
     if (!isFirst) Serial.print(',');
     isFirst = false;
 
+    int slideInStatus = digitalRead(RAMEN_EJ_TOP_IN[i]); // 기본값은 센서 값
+
+    // 인덱스 0 장비에 한하여, 복귀 중(EJECT_RETURNING)일 경우 강제 1 유지
+    // (BTM_IN이 1이 되기 전까지 슬라이딩 중으로 간주)
+    if (ramenEjectStatus == EJECT_RETURNING) {
+      slideInStatus = 1; 
+    } else {
+      slideInStatus = 0;
+    }
+
     doc.clear();
     doc["device"] = "ramen";
     doc["control"] = i + 1;
-    doc["liftup"] = digitalRead(RAMEN_UP_TOP_IN[i]); // 면 배출 상한 센서
-    doc["liftdown"] = digitalRead(RAMEN_UP_BTM_IN[i]); // 면 배출 하한 센서
-    doc["slidein"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 상승 하한 센서
-    doc["slideout"] = digitalRead(RAMEN_EJ_TOP_IN[i]); // 면 상승 상한 센서
-    doc["detect"] = state.ramen_stock[i];;
+    doc["liftup"] = digitalRead(RAMEN_UP_TOP_IN[i]);
+    doc["liftdown"] = digitalRead(RAMEN_UP_BTM_IN[i]);
+    doc["slidein"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 배출 상한센서
+    doc["slideout"] = slideInStatus;
+    doc["detect"] = state.ramen_stock[i];
     doc["lift"] = state.ramen_lift[i];
     serializeJson(doc, Serial);
   }

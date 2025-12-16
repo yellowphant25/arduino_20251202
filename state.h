@@ -50,4 +50,12 @@ extern unsigned long ramenPhotoDebounceTime[MAX_RAMEN];
 extern int ramenPhotoPrevState[MAX_RAMEN];       
 extern const unsigned long DEBOUNCE_DELAY_MS;
 
+enum RamenEjectState {
+  EJECT_IDLE,
+  EJECTING,
+  EJECT_RETURNING
+};
+
+extern RamenEjectState ramenEjectStatus;
+
 #endif // STATE_H

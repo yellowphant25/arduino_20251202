@@ -5,12 +5,6 @@
 #include "state.h"     // 전역 변수(current, state) 사용
 #include "reporting.h"
 
-// ===== 전역 상태 변수 (idx=0 장비 전용 상태) =====
-enum RamenEjectState {
-  EJECT_IDLE,
-  EJECTING,
-  EJECT_RETURNING
-};
 RamenEjectState ramenEjectStatus = EJECT_IDLE;
 
 bool isPowderDispensing[MAX_POWDER] = { false };
@@ -248,7 +242,7 @@ void startRamenEject(uint8_t idx) {
       Serial.print("Warning: Eject command ignored. Status is not IDLE.");
     }
   } else {
-    // 2번 장비 이후는 상태머신 없이 즉시 동작 (단순 ON)
+
     digitalWrite(RAMEN_EJ_FWD_OUT[idx], HIGH);
   }
 }
