@@ -425,6 +425,8 @@ bool handleRamenCommand(const JsonDocument& doc) {
     digitalWrite(RAMEN_UP_REV_OUT[idx], LOW);
     if (idx == 0) { ramenEjectStatus = EJECT_IDLE; }
     Serial.println("ramen stopdispense (ALL STOP)");
+  } else if (strcmp(func, "slideinit")){
+    digitalWrite(RAMEN_EJ_REV_OUT[idx], HIGH);
   } else {
     sendError("ramen", control, "unknown ramen function");
   }

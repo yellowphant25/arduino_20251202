@@ -123,10 +123,10 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "ramen";
     doc["control"] = i + 1;
-    doc["liftup"] = digitalRead(RAMEN_EJ_TOP_IN[i]); // 면 배출 상한 센서
-    doc["liftdown"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 배출 하한 센서
-    doc["slidein"] = digitalRead(RAMEN_UP_BTM_IN[i]); // 면 상승 하한 센서
-    doc["slideout"] = digitalRead(RAMEN_UP_TOP_IN[i]); // 면 상승 상한 센서
+    doc["liftup"] = digitalRead(RAMEN_UP_TOP_IN[i]); // 면 배출 상한 센서
+    doc["liftdown"] = digitalRead(RAMEN_UP_BTM_IN[i]); // 면 배출 하한 센서
+    doc["slidein"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 상승 하한 센서
+    doc["slideout"] = digitalRead(RAMEN_EJ_TOP_IN[i]); // 면 상승 상한 센서
     doc["detect"] = state.ramen_stock[i];;
     doc["lift"] = state.ramen_lift[i];
     serializeJson(doc, Serial);
@@ -167,8 +167,8 @@ void publishStateJson() {
     doc["device"] = "outlet";
     doc["control"] = i + 1;
     doc["amp"] = state.outlet_amp[i];
-    doc["opendoor"] = digitalRead(OUTLET_FWD_OUT[i]);
-    doc["closedoor"] = digitalRead(OUTLET_REV_OUT[i]);
+    doc["opendoor"] = digitalRead(OUTLET_OPEN_IN[i]);
+    doc["closedoor"] = digitalRead(OUTLET_CLOSE_IN[i]);
     doc["sonar"] = state.outlet_sonar[i];
     serializeJson(doc, Serial);
   }
