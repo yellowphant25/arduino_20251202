@@ -45,4 +45,9 @@ extern long cupReleaseInterval;
 extern Setting current;
 extern State state;
 
+// 포토센서 디바운스 체크
+extern unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; 
+extern int ramenPhotoPrevState[MAX_RAMEN] = {0};              
+extern const unsigned long DEBOUNCE_DELAY_MS = 50;
+
 #endif // STATE_H

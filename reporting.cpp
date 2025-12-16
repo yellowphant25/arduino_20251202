@@ -4,6 +4,10 @@
 #include "config.h" 
 #include "state.h"
 
+unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; 
+int ramenPhotoPrevState[MAX_RAMEN] = {0};              
+const unsigned long DEBOUNCE_DELAY_MS = 50;
+
 // =========================================================
 // [추가됨] 전류 센서값 정제 함수 (노이즈 필터 + 데드존)
 // =========================================================
@@ -26,6 +30,8 @@ int filterAmpValue(int pin, int prevValue) {
 
 void readAllSensors() {
   uint8_t i;
+  unsigned long now = millis();
+  int currentReading;
 
   for (i = 0; i < current.cup; i++) {
     state.cup_amp[i] = analogRead(CUP_CURR_AIN[i]);
@@ -34,8 +40,24 @@ void readAllSensors() {
   }
 
   for (i = 0; i < current.ramen; i++) { 
+    // 1. 센서의 현재 물리적 핀 상태를 읽음
+    currentReading = digitalRead(RAMEN_PRESENT_IN[i]); 
+    
+    // 2. 현재 읽은 값과 직전 감지된 상태가 다를 경우
+    if (currentReading != ramenPhotoPrevState[i]) {
+      // 값이 변했으므로, 타이머를 재설정하고 상태 저장 (바운싱 시작)
+      ramenPhotoDebounceTime[i] = now;
+      ramenPhotoPrevState[i] = currentReading; // 상태 업데이트
+    }
+
+    // 3. 값이 50ms 이상 안정적으로 유지되었는지 확인
+    if ((now - ramenPhotoDebounceTime[i]) >= DEBOUNCE_DELAY_MS) {
+      // 값이 안정되었으므로, 최종 상태 변수(state.ramen_stock)에 반영
+      state.ramen_stock[i] = currentReading; 
+    }
+
+
     state.ramen_amp[i] = analogRead(RAMEN_EJ_CURR_AIN[i]);
-    state.ramen_stock[i] = digitalRead(RAMEN_PRESENT_IN[i]);
   }
 
   for (i = 0; i < current.powder; i++) {
@@ -105,7 +127,7 @@ void publishStateJson() {
     doc["liftdown"] = digitalRead(RAMEN_EJ_BTM_IN[i]); // 면 배출 하한 센서
     doc["slidein"] = digitalRead(RAMEN_UP_BTM_IN[i]); // 면 상승 하한 센서
     doc["slideout"] = digitalRead(RAMEN_UP_TOP_IN[i]); // 면 상승 상한 센서
-    doc["detect"] = digitalRead(RAMEN_PRESENT_IN[i]); // 포토 센서
+    doc["detect"] = state.ramen_stock[i];;
     doc["lift"] = state.ramen_lift[i];
     serializeJson(doc, Serial);
   }
