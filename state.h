@@ -58,4 +58,6 @@ enum RamenEjectState {
 
 extern RamenEjectState ramenEjectStatus;
 
+extern HX711 outletScale[MAX_OUTLET];
+
 #endif // STATE_H

@@ -4,6 +4,9 @@
 #include "config.h"    // 핀맵
 #include "state.h"     // 전역 변수(current, state) 사용
 #include "reporting.h"
+#include "HX711.h"
+
+HX711 outletScale[4] = {};
 
 RamenEjectState ramenEjectStatus = EJECT_IDLE;
 
@@ -13,11 +16,6 @@ unsigned long powderDuration[MAX_POWDER] = { 0 };
 
 long startCupReleaseTime[MAX_CUP] = {0};
 long cupReleaseInterval = 500;
-
-unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; 
-int ramenPhotoPrevState[MAX_RAMEN] = {0};              
-const unsigned long DEBOUNCE_DELAY_MS = 50;
-
 
 // =======================================================
 // === 1. 설정 (Setup) 및 파싱 (Parse) 함수
@@ -76,12 +74,27 @@ void setupPowder(uint8_t n) {
 
 void setupOutlet(uint8_t n) {
   for (uint8_t i = 0; i < n; i++) {
+    if (i >= MAX_OUTLET) break; 
+
     pinMode(OUTLET_FWD_OUT[i], OUTPUT);
     pinMode(OUTLET_REV_OUT[i], OUTPUT);
     pinMode(OUTLET_OPEN_IN[i], INPUT_PULLUP);
     pinMode(OUTLET_CLOSE_IN[i], INPUT_PULLUP);
+
+    outletScale[i].begin(OUTLET_LOAD_AIN[i], OUTLET_USONIC_AIN[i]);
+    outletScale[i].set_scale(10.f);
+    
+    if (outletScale[i].wait_ready_timeout(1000)) {
+        outletScale[i].tare(10);
+        Serial.print("Outlet Scale "); Serial.print(i); Serial.println(" ready.");
+    } else {
+        Serial.print("Outlet Scale "); Serial.print(i); Serial.println(" NOT FOUND.");
+    }
+
+    Serial.println("setup outlet complete!");
   }
 }
+
 void setupCooker(uint8_t n) {
   for (uint8_t i = 0; i < n; i++) {
     if (i < 2) {
@@ -179,30 +192,6 @@ void startRamenRise(uint8_t idx) {
   Serial.print(idx + 1);
   Serial.println(")");
   digitalWrite(RAMEN_UP_FWD_OUT[idx], HIGH);
-}
-
-void checkRamenRise() {
-  for (uint8_t i = 0; i < current.ramen; i++) {
-    if (digitalRead(RAMEN_UP_FWD_OUT[i]) == HIGH) {
-      bool stopMotor = false;
-
-      if (digitalRead(RAMEN_PRESENT_IN[i]) == LOW) {
-        Serial.println("포토 센서 LOW");
-        stopMotor = true;
-      } else if (digitalRead(RAMEN_UP_TOP_IN[i]) == HIGH) {
-        Serial.println("면상승 상한센서 HIGH");
-        stopMotor = true;
-      }
-
-      if (stopMotor) {
-        Serial.print("완료: 상승 동작 중지 (장비: ");
-        Serial.print(i + 1);
-        Serial.println(")");
-        digitalWrite(RAMEN_UP_FWD_OUT[i], LOW);
-        stopMotor = false;
-      }
-    }
-  }
 }
 
 void checkRamenRise() {

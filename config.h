@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <Arduino.h>
+#include "HX711.h"
 
 // ===== 최대치 정의 =====
 const uint8_t MAX_CUP     = 4;
@@ -46,8 +47,8 @@ const uint8_t OUTLET_REV_OUT[4]   = {5, 9, 13, 25};
 const uint8_t OUTLET_OPEN_IN[4]   = {6,10,22,26};
 const uint8_t OUTLET_CLOSE_IN[4]  = {7,11,23,27};
 const uint8_t OUTLET_CURR_AIN[4]  = {A0, A3, A6, A9};
-const uint8_t OUTLET_LOAD_AIN[4]  = {A1, A4, A7, A10};
-const uint8_t OUTLET_USONIC_AIN[4]= {A2, A5, A8, A11};
+const uint8_t OUTLET_LOAD_AIN[4]  = {28, 30, 32, 34};
+const uint8_t OUTLET_USONIC_AIN[4]= {29, 31, 33, 35};
 
 // ===== 5. cooker 핀맵 =====
 const uint8_t COOKER_IND_SIG[4]   = {32,33,34,35};

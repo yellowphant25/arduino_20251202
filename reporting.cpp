@@ -3,10 +3,9 @@
 #include "reporting.h"
 #include "config.h" 
 #include "state.h"
-
-unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0}; // Line 7
-int ramenPhotoPrevState[MAX_RAMEN] = {0};             // Line 8
-const unsigned long DEBOUNCE_DELAY_MS = 50;          // Line 9 (값은 예시)
+unsigned long ramenPhotoDebounceTime[MAX_RAMEN] = {0};
+int ramenPhotoPrevState[MAX_RAMEN] = {0};            
+const unsigned long DEBOUNCE_DELAY_MS = 50;          
 
 // =========================================================
 // [추가됨] 전류 센서값 정제 함수 (노이즈 필터 + 데드존)
@@ -26,6 +25,36 @@ int filterAmpValue(int pin, int prevValue) {
   }
 
   return (int)filtered;
+}
+
+long readHX711(uint8_t dtPin, uint8_t sckPin) {
+  long count = 0;
+  
+  // 데이터가 준비될 때까지 대기 (DT 핀이 LOW가 되면 준비 완료)
+  if (digitalRead(dtPin) == HIGH) return 0; 
+
+  // 24비트 데이터 읽기
+  for (int i = 0; i < 24; i++) {
+    digitalWrite(sckPin, HIGH);
+    delayMicroseconds(1); // Due의 속도가 빠르므로 짧은 지연 추가
+    count = count << 1;
+    digitalWrite(sckPin, LOW);
+    delayMicroseconds(1);
+    if (digitalRead(dtPin)) count++;
+  }
+
+  // 25번째 펄스로 다음 읽기 설정 (Gain 128 기준)
+  digitalWrite(sckPin, HIGH);
+  delayMicroseconds(1);
+  digitalWrite(sckPin, LOW);
+  delayMicroseconds(1);
+
+  // 2's complement 처리 (음수 대응)
+  if (count & 0x800000) {
+    count |= 0xFF000000;
+  }
+  
+  return count;
 }
 
 void readAllSensors() {
@@ -69,8 +98,14 @@ void readAllSensors() {
 
   for (i = 0; i < current.outlet; i++) {
     state.outlet_amp[i] = analogRead(OUTLET_CURR_AIN[i]);
-    state.outlet_sonar[i] = analogRead(OUTLET_USONIC_AIN[i]);
-    state.outlet_loadcell[i] = analogRead(OUTLET_LOAD_AIN[i]);
+    if (outletScale[i].is_ready()) {
+        state.outlet_loadcell[i] = (int)outletScale[i].get_units(5);
+    } else {
+      state.outlet_loadcell [i] = 0;
+    }
+    
+    // 초음파 센서는 핀을 점유당했으므로 현재 코드에서는 읽을 수 없음
+    // state.outlet_sonar[i] = /
     // state.outlet_door[i] = ...
   }
 
@@ -177,6 +212,7 @@ void publishStateJson() {
     doc["opendoor"] = digitalRead(OUTLET_OPEN_IN[i]);
     doc["closedoor"] = digitalRead(OUTLET_CLOSE_IN[i]);
     doc["sonar"] = state.outlet_sonar[i];
+    doc["loadcell"] = state.outlet_loadcell[i];
     serializeJson(doc, Serial);
   }
 
