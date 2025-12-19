@@ -84,7 +84,7 @@ void setupOutlet(uint8_t n) {
     outletScale[i].begin(OUTLET_LOAD_AIN[i], OUTLET_USONIC_AIN[i]);
     outletScale[i].set_scale(10.f);
     
-    if (outletScale[i].wait_ready_timeout(1000)) {
+    if (outletScale[i].wait_ready_timeout(500)) {
         outletScale[i].tare(10);
         Serial.print("Outlet Scale "); Serial.print(i); Serial.println(" ready.");
     } else {

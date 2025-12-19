@@ -99,14 +99,12 @@ void readAllSensors() {
   for (i = 0; i < current.outlet; i++) {
     state.outlet_amp[i] = analogRead(OUTLET_CURR_AIN[i]);
     if (outletScale[i].is_ready()) {
-        state.outlet_loadcell[i] = (int)outletScale[i].get_units(5);
+        state.outlet_loadcell[i] = filterAmpValue(OUTLET_LOAD_AIN[i], state.outlet_loadcell[i]);
     } else {
+      Serial.println('loadcell is not ready');
       state.outlet_loadcell [i] = 0;
     }
     
-    // 초음파 센서는 핀을 점유당했으므로 현재 코드에서는 읽을 수 없음
-    // state.outlet_sonar[i] = /
-    // state.outlet_door[i] = ...
   }
 
   state.door_sensor1 = digitalRead(DOOR_SENSOR1_PIN);
