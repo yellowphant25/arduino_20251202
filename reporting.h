@@ -5,6 +5,7 @@
 
 void readAllSensors();
 void checkVolt();
+int checkMotorRunning(int currentIdx);
 void publishStateJson();
 
 void handleEncoderA();

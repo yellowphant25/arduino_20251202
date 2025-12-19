@@ -99,12 +99,9 @@ void readAllSensors() {
   for (i = 0; i < current.outlet; i++) {
     state.outlet_amp[i] = analogRead(OUTLET_CURR_AIN[i]);
     if (outletScale[i].is_ready()) {
-        state.outlet_loadcell[i] = filterAmpValue(OUTLET_LOAD_AIN[i], state.outlet_loadcell[i]);
-    } else {
-      Serial.println('loadcell is not ready');
-      state.outlet_loadcell [i] = 0;
-    }
-    
+      Serial.println('loadcell is ready');
+         state.outlet_loadcell[i] = (int)outletScale[i].get_units(5);
+    } 
   }
 
   state.door_sensor1 = digitalRead(DOOR_SENSOR1_PIN);
@@ -139,7 +136,7 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "cup";
     doc["control"] = i + 1;
-    doc["amp"] = state.cup_amp[i];
+    doc["amp"] = checkMotorRunning(i);
     doc["stock"] = state.cup_stock[i];
     doc["dispense"] = state.cup_dispense[i];
     serializeJson(doc, Serial);
@@ -180,7 +177,7 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "powder";
     doc["control"] = i + 1;
-    doc["amp"] = state.powder_amp[i];
+    doc["amp"] = checkMotorRunning(i);
     doc["dispense"] = state.powder_dispense[i];
     serializeJson(doc, Serial);
   }
@@ -206,7 +203,7 @@ void publishStateJson() {
     doc.clear();
     doc["device"] = "outlet";
     doc["control"] = i + 1;
-    doc["amp"] = state.outlet_amp[i];
+    doc["amp"] = checkMotorRunning(i);
     doc["opendoor"] = digitalRead(OUTLET_OPEN_IN[i]);
     doc["closedoor"] = digitalRead(OUTLET_CLOSE_IN[i]);
     doc["sonar"] = state.outlet_sonar[i];
@@ -234,4 +231,25 @@ void checkVolt() {
   
   Serial.print("current vol : ");
   Serial.println(v);
+}
+
+int checkMotorRunning(int currentIdx) {
+  int sendingMotorState = 0;
+
+  if (current.cup > 0 && currentIdx < current.cup) {
+    sendingMotorState = digitalRead(CUP_MOTOR_OUT[currentIdx]);
+  }
+
+  else if (current.powder > 0 && currentIdx < current.powder) {
+    sendingMotorState = digitalRead(POWDER_MOTOR_OUT[currentIdx]);
+  }
+
+  else if (current.outlet > 0 && currentIdx < current.outlet) {
+    int fwd = digitalRead(OUTLET_FWD_OUT[currentIdx]);
+    int rev = digitalRead(OUTLET_REV_OUT[currentIdx]);
+
+    sendingMotorState = (fwd == 0 && rev == 0) ? 0 : (fwd == 1 ? 1 : -1);
+  }
+
+  return sendingMotorState;
 }
